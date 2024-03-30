@@ -48,7 +48,7 @@ namespace MyFirstBot
             discord.MessageCreated += async (s, e) =>
             {
                 // Check if guild setting allows reacting to "ping" message
-                if (settings.GetSettingValueAsBoolean(e.Guild.Id, "ReactToPing", false))
+                if (!settings.GetSettingValueAsBoolean(e.Guild.Id, "ReactToPing", false))
                 {
                     return;  // Skip if not allowed
                 }
