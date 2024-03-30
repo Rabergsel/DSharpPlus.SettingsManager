@@ -1,5 +1,4 @@
-﻿using DSharpPlus;
-using DSharpPlus.Entities;
+﻿using DSharpPlus.Entities;
 
 namespace DSharpPlus.SettingsManager
 {
@@ -26,12 +25,12 @@ namespace DSharpPlus.SettingsManager
 
         private void log(string prefix, string log, int level)
         {
-            if(level <= DebugLevel)
+            if (level <= DebugLevel)
             {
                 Console.WriteLine($"{DateTime.Now}\t[{prefix.ToUpper()}] {log}");
             }
         }
-        
+
 
         public string Serialize()
         {
@@ -41,7 +40,10 @@ namespace DSharpPlus.SettingsManager
 
         public void Save()
         {
-            if(!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
 
             File.WriteAllText(folder + "guildsettings.json", System.Text.Json.JsonSerializer.Serialize(GuildSettings));
             File.WriteAllText(folder + "channelsettings.json", System.Text.Json.JsonSerializer.Serialize(ChannelSettings));
@@ -55,22 +57,28 @@ namespace DSharpPlus.SettingsManager
                 GuildSettings = System.Text.Json.JsonSerializer.Deserialize<Manager.Manager>(File.ReadAllText(folderPath + "guildsettings.json"));
                 ChannelSettings = System.Text.Json.JsonSerializer.Deserialize<Manager.Manager>(File.ReadAllText(folderPath + "channelsettings.json"));
             }
-            catch(FileNotFoundException fnfex)
+            catch (FileNotFoundException fnfex)
             {
                 log("SM", "Couldn't load from " + fnfex.FileName + " as this file does not exist", 1);
             }
         }
 
-       public void AddDefaultChannelSetting(SettingEntity setting)
+        public void AddDefaultChannelSetting(SettingEntity setting)
         {
             ChannelSettings.AddDefaultSetting(setting);
-            if (SaveAfterEveryChange) Save();
+            if (SaveAfterEveryChange)
+            {
+                Save();
+            }
         }
 
         public void AddDefaultGuildSetting(SettingEntity setting)
         {
             GuildSettings.AddDefaultSetting(setting);
-            if (SaveAfterEveryChange) Save();
+            if (SaveAfterEveryChange)
+            {
+                Save();
+            }
         }
 
         public long GetSettingValueAsLong(ulong id, string name, long defaultValue = 0)
@@ -113,7 +121,10 @@ namespace DSharpPlus.SettingsManager
         {
             log("SM", "Trying to get Setting " + name + " for " + id, 2);
             string result = GuildSettings.getSetting(id, name);
-            if(result != null) return result;
+            if (result != null)
+            {
+                return result;
+            }
 
             return ChannelSettings.getSetting(id, name);
         }
@@ -126,7 +137,7 @@ namespace DSharpPlus.SettingsManager
                 return true;
             }
 
-            if(ChannelSettings.setSetting(id, name, value))
+            if (ChannelSettings.setSetting(id, name, value))
             {
                 return true;
             }
@@ -136,7 +147,7 @@ namespace DSharpPlus.SettingsManager
 
         public override void Dispose()
         {
-            
+
         }
 
         protected override void Setup(DiscordClient client)
@@ -148,11 +159,15 @@ namespace DSharpPlus.SettingsManager
                 RegisterAllGuilds(e.Guilds);
             };
 
-            if(CommandListener)
+            if (CommandListener)
             {
                 client.MessageCreated += async (s, e) =>
                 {
-                    if (e.Guild == null) return;
+                    if (e.Guild == null)
+                    {
+                        return;
+                    }
+
                     CommandListenerFunction(e.Guild.Id, e.Channel.Id, PermissionMethods.HasPermission(e.Guild.GetMemberAsync(e.Author.Id).Result.Permissions, Permissions.Administrator), e.Message.Content, e.Channel);
                 };
             }
@@ -160,13 +175,13 @@ namespace DSharpPlus.SettingsManager
 
         private void RegisterAllGuilds(IReadOnlyDictionary<ulong, DiscordGuild> guilds)
         {
-            
-            foreach(var guild in guilds)
+
+            foreach (KeyValuePair<ulong, DiscordGuild> guild in guilds)
             {
                 log("SM", $"Registering Guild \"{guild.Value.Name}\"(ID: {guild.Key}) into Registry", 3);
                 GuildSettings.Register(guild.Key);
 
-                foreach(var channel in guild.Value.Channels)
+                foreach (KeyValuePair<ulong, DiscordChannel> channel in guild.Value.Channels)
                 {
                     log("SM", $"Registering Channel \"{channel.Value.Name}\"(ID: {channel.Key}) into Registry", 3);
                     ChannelSettings.Register(channel.Key);
@@ -180,14 +195,17 @@ namespace DSharpPlus.SettingsManager
         private void CommandListenerFunction(ulong guildId, ulong channelId, bool isAdmin, string content, DiscordChannel channel)
         {
 
-            if (!content.StartsWith(prefix)) return;
+            if (!content.StartsWith(prefix))
+            {
+                return;
+            }
 
             string answer = "";
-            if(content.StartsWith(prefix + " help"))
+            if (content.StartsWith(prefix + " help"))
             {
-                foreach(var d in GuildSettings.defaults)
+                foreach (SettingEntity? d in GuildSettings.defaults)
                 {
-                    if(!isAdmin & d.needsAdmin)
+                    if (!isAdmin & d.needsAdmin)
                     {
                         continue;
                     }
@@ -195,7 +213,7 @@ namespace DSharpPlus.SettingsManager
                     answer += "**" + d.Name + "**\t" + d.Description + "\n";
 
                 }
-                foreach (var d in ChannelSettings.defaults)
+                foreach (SettingEntity? d in ChannelSettings.defaults)
                 {
                     if (!isAdmin & d.needsAdmin)
                     {
@@ -217,14 +235,18 @@ namespace DSharpPlus.SettingsManager
 
             log("SM", $"User trying to set setting {name} to {value}; Is Admin? {isAdmin}", 2);
 
-            bool GuildSettingsSuccessfull  =  GuildSettings.setSettingAsUser(guildId, name, value, isAdmin);
-            bool ChannelSettingsSuccessful =  ChannelSettings.setSettingAsUser(channelId, name, value, isAdmin);
+            bool GuildSettingsSuccessfull = GuildSettings.setSettingAsUser(guildId, name, value, isAdmin);
+            bool ChannelSettingsSuccessful = ChannelSettings.setSettingAsUser(channelId, name, value, isAdmin);
 
             if (GuildSettingsSuccessfull | ChannelSettingsSuccessful)
             {
                 answer = $"Set Setting \"{name}\" to {value}";
                 channel.SendMessageAsync(answer);
-                if(SaveAfterEveryChange) Save();
+                if (SaveAfterEveryChange)
+                {
+                    Save();
+                }
+
                 return;
             }
         }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DSharpPlus.SettingsManager.Manager
+﻿namespace DSharpPlus.SettingsManager.Manager
 {
     public class Manager
     {
@@ -14,16 +8,22 @@ namespace DSharpPlus.SettingsManager.Manager
 
         public void Register(ulong id)
         {
-            if (Settings.ContainsKey(id)) return;
-            else Settings.Add(id, defaults.ToArray().ToList());
+            if (Settings.ContainsKey(id))
+            {
+                return;
+            }
+            else
+            {
+                Settings.Add(id, defaults.ToArray().ToList());
+            }
         }
 
         public void AddDefaultSetting(SettingEntity setting)
         {
 
-            foreach(var def in defaults)
+            foreach (SettingEntity? def in defaults)
             {
-                if(def.Name == setting.Name)
+                if (def.Name == setting.Name)
                 {
                     return; //Name already in use
                 }
@@ -31,7 +31,7 @@ namespace DSharpPlus.SettingsManager.Manager
 
             defaults.Add(setting);
 
-            foreach(var Setting in Settings)
+            foreach (KeyValuePair<ulong, List<SettingEntity>> Setting in Settings)
             {
                 Setting.Value.Add(setting);
             }
@@ -46,7 +46,7 @@ namespace DSharpPlus.SettingsManager.Manager
                 {
                     if (Settings[id][i].Name == name)
                     {
-                        if(Settings[id][i].needsAdmin & !isAdmin) { return false; } //Missing Privileges
+                        if (Settings[id][i].needsAdmin & !isAdmin) { return false; } //Missing Privileges
 
                         Settings[id][i].Value = value;
                         return true;
@@ -70,15 +70,15 @@ namespace DSharpPlus.SettingsManager.Manager
         {
             if (Settings.ContainsKey(id))
             {
-                for(int i = 0; i < Settings.Count; i++)
+                for (int i = 0; i < Settings.Count; i++)
                 {
-                    if(Settings[id][i].Name == name)
+                    if (Settings[id][i].Name == name)
                     {
                         Settings[id][i].Value = value;
                         return true;
                     }
 
-                    if(Settings[id][i].CommandAlts.Contains(name))
+                    if (Settings[id][i].CommandAlts.Contains(name))
                     {
                         Settings[id][i].Value = value;
                         return true;
@@ -92,13 +92,19 @@ namespace DSharpPlus.SettingsManager.Manager
 
         public string getSetting(ulong id, string name, bool registerNew = false)
         {
-            if(Settings.ContainsKey(id))
+            if (Settings.ContainsKey(id))
             {
-                foreach(var Setting in Settings[id])
+                foreach (SettingEntity? Setting in Settings[id])
                 {
-                    if(Setting.Name == name) return Setting.Value;
-                    if(Setting.CommandAlts.Contains(name)) return Setting.Value;
+                    if (Setting.Name == name)
+                    {
+                        return Setting.Value;
+                    }
 
+                    if (Setting.CommandAlts.Contains(name))
+                    {
+                        return Setting.Value;
+                    }
                 }
             }
             else
