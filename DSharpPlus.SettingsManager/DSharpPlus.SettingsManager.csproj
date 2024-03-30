@@ -4,6 +4,10 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Raphael Matthias Raberger</Authors>
+    <Description>This is an extension for easy Settings Management for DSharpPlus Discord Bots.</Description>
+    <RepositoryUrl>https://github.com/Rabergsel/DSharpPlus.SettingsManager</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
