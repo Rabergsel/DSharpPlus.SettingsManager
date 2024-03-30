@@ -75,3 +75,5 @@ namespace MyFirstBot
 ## Note
 
 This package is under heavy development and may undergo frequent changes. It's recommended to keep an eye on updates and consult the documentation for any breaking changes.
+
+User Settings are coming soon.
