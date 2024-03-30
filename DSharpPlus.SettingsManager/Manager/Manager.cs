@@ -42,7 +42,7 @@ namespace DSharpPlus.SettingsManager.Manager
         {
             if (Settings.ContainsKey(id))
             {
-                for (int i = 0; i < Settings.Count; i++)
+                for (int i = 0; i < Settings[id].Count; i++)
                 {
                     if (Settings[id][i].Name == name)
                     {

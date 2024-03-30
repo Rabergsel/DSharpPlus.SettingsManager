@@ -16,13 +16,12 @@ namespace DSharpPlus.SettingsManager
             this.Value = Value;
         }
 
-        public SettingEntity(string name, string value, string description, bool needsAdmin, List<string> commandAlts)
+        public SettingEntity(string name, string value, string description, bool needsAdmin)
         {
             Name = name;
             Value = value;
             Description = description;
             this.needsAdmin = needsAdmin;
-            CommandAlts = commandAlts;
         }
 
         public string Name { get; set; } = "";

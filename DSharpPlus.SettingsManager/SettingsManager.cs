@@ -29,7 +29,51 @@ namespace DSharpPlus.SettingsManager
             }
         }
         
-       
+       public void AddDefaultChannelSetting(SettingEntity setting)
+        {
+            ChannelSettings.AddDefaultSetting(setting);
+        }
+
+        public void AddDefaultGuildSetting(SettingEntity setting)
+        {
+            GuildSettings.AddDefaultSetting(setting);
+        }
+
+        public long GetSettingValueAsLong(ulong id, string name, long defaultValue = 0)
+        {
+            try
+            {
+                return long.Parse(GetSettingValue(id, name));
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
+
+        public float GetSettingValueAsFloat(ulong id, string name, float defaultValue = 0)
+        {
+            try
+            {
+                return float.Parse(GetSettingValue(id, name));
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
+
+        public bool GetSettingValueAsBoolean(ulong id, string name, bool defaultValue = false)
+        {
+            try
+            {
+                return bool.Parse(GetSettingValue(id, name));
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
 
         public string GetSettingValue(ulong id, string name)
         {
@@ -132,14 +176,22 @@ namespace DSharpPlus.SettingsManager
             }
 
 
-            content.Replace(prefix, "");
+            content = content.Replace(prefix, "").Trim();
 
             string name = content.Split(" ")[0].Trim();
             string value = content.Replace(name, "").Trim();
 
-            GuildSettings.setSettingAsUser(guildId, name, value, isAdmin);
-            ChannelSettings.setSettingAsUser(channelId, name, value, isAdmin);
+            log("SM", $"User trying to set setting {name} to {value}; Is Admin? {isAdmin}", 2);
 
+            bool GuildSettingsSuccessfull  =  GuildSettings.setSettingAsUser(guildId, name, value, isAdmin);
+            bool ChannelSettingsSuccessful =  ChannelSettings.setSettingAsUser(channelId, name, value, isAdmin);
+
+            if (GuildSettingsSuccessfull | ChannelSettingsSuccessful)
+            {
+                answer = $"Set Setting \"{name}\" to {value}";
+                channel.SendMessageAsync(answer);
+                return;
+            }
         }
 
 
