@@ -35,7 +35,7 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Build and Pack NuGet package
-      run: dotnet pack src/services/DSharpPlus.SettingsManager/DSharpPlus.SettingsManager.csproj -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release
+      run: dotnet pack DSharpPlus.SettingsManager/DSharpPlus.SettingsManager.csproj -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release
     - name: Upload NuGet package to GitHub
       uses: actions/upload-artifact@v2
       with:
