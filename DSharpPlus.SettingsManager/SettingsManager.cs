@@ -17,6 +17,9 @@ namespace DSharpPlus.SettingsManager
         public bool CommandListener = true;
         public string prefix = "?";
 
+        public bool SaveAfterEveryChange = true;
+        public string folder = "./settings/";
+
 
         Manager.Manager GuildSettings { get; set; } = new Manager.Manager();
         Manager.Manager ChannelSettings { get; set; } = new Manager.Manager();
@@ -29,14 +32,45 @@ namespace DSharpPlus.SettingsManager
             }
         }
         
+
+        public string Serialize()
+        {
+            return System.Text.Json.JsonSerializer.Serialize(this);
+        }
+
+
+        public void Save()
+        {
+            if(!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+            File.WriteAllText(folder + "guildsettings.json", System.Text.Json.JsonSerializer.Serialize(GuildSettings));
+            File.WriteAllText(folder + "channelsettings.json", System.Text.Json.JsonSerializer.Serialize(ChannelSettings));
+            log("SM", "Saved Manager", 2);
+        }
+
+        public void Load(string folderPath = "")
+        {
+            try
+            {
+                GuildSettings = System.Text.Json.JsonSerializer.Deserialize<Manager.Manager>(File.ReadAllText(folderPath + "guildsettings.json"));
+                ChannelSettings = System.Text.Json.JsonSerializer.Deserialize<Manager.Manager>(File.ReadAllText(folderPath + "channelsettings.json"));
+            }
+            catch(FileNotFoundException fnfex)
+            {
+                log("SM", "Couldn't load from " + fnfex.FileName + " as this file does not exist", 1);
+            }
+        }
+
        public void AddDefaultChannelSetting(SettingEntity setting)
         {
             ChannelSettings.AddDefaultSetting(setting);
+            if (SaveAfterEveryChange) Save();
         }
 
         public void AddDefaultGuildSetting(SettingEntity setting)
         {
             GuildSettings.AddDefaultSetting(setting);
+            if (SaveAfterEveryChange) Save();
         }
 
         public long GetSettingValueAsLong(ulong id, string name, long defaultValue = 0)
@@ -190,6 +224,7 @@ namespace DSharpPlus.SettingsManager
             {
                 answer = $"Set Setting \"{name}\" to {value}";
                 channel.SendMessageAsync(answer);
+                if(SaveAfterEveryChange) Save();
                 return;
             }
         }

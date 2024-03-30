@@ -10,7 +10,7 @@ namespace DSharpPlus.SettingsManager.Manager
     {
         internal List<SettingEntity> defaults = new List<SettingEntity>();
 
-        Dictionary<ulong, List<SettingEntity>> Settings { get; set; } = new Dictionary<ulong, List<SettingEntity>>();
+        public Dictionary<ulong, List<SettingEntity>> Settings { get; set; } = new Dictionary<ulong, List<SettingEntity>>();
 
         public void Register(ulong id)
         {
