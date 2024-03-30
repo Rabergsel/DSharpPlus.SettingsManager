@@ -8,6 +8,8 @@
     <Authors>Raphael Matthias Raberger</Authors>
     <Description>This is an extension for easy Settings Management for DSharpPlus Discord Bots.</Description>
     <RepositoryUrl>https://github.com/Rabergsel/DSharpPlus.SettingsManager</RepositoryUrl>
+    <PackageId>Rabergsel.DSharpPlus.SettingsManager</PackageId>
+    <Product>Rabergsel.DSharpPlus.SettingsManager</Product>
   </PropertyGroup>
 
   <ItemGroup>
