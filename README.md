@@ -28,16 +28,6 @@ namespace MyFirstBot
                 Intents = DiscordIntents.All  // Enable all intents for the bot
             });
 
-            // Initialize SettingsManager with debug level 3
-            SettingsManager? settings = new SettingsManager
-            {
-                //Level 0 = no logging
-                //Level 1 = Releveant actions like index finished, errors or crashed
-                //Level 2 = Actions, like fetching settings
-                //Level 3 = Tracing
-                DebugLevel = 1
-            };
-
             // Add default guild setting for reacting to "ping" message
             settings.AddDefaultGuildSetting(new SettingEntity("ReactToPing", false.ToString(), "If set to yes, the bot will react to a \"ping\" message", false));
 
