@@ -20,8 +20,8 @@ public class SettingsManager : BaseExtension
     public string folder = "./settings/";
 
 
-    Manager.Manager GuildSettings { get; set; } = new Manager.Manager();
-    Manager.Manager ChannelSettings { get; set; } = new Manager.Manager();
+    Manager GuildSettings { get; set; } = new Manager();
+    Manager ChannelSettings { get; set; } = new Manager();
 
     private void log(string prefix, string log, int level)
     {
@@ -54,8 +54,8 @@ public class SettingsManager : BaseExtension
     {
         try
         {
-            GuildSettings = System.Text.Json.JsonSerializer.Deserialize<Manager.Manager>(File.ReadAllText(folderPath   + "guildsettings.json"));
-            ChannelSettings = System.Text.Json.JsonSerializer.Deserialize<Manager.Manager>(File.ReadAllText(folderPath + "channelsettings.json"));
+            GuildSettings = System.Text.Json.JsonSerializer.Deserialize<Manager>(File.ReadAllText(folderPath   + "guildsettings.json"));
+            ChannelSettings = System.Text.Json.JsonSerializer.Deserialize<Manager>(File.ReadAllText(folderPath + "channelsettings.json"));
         }
         catch (FileNotFoundException fnfex)
         {

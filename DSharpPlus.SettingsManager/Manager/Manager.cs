@@ -1,4 +1,4 @@
-﻿namespace DSharpPlus.SettingsManager.Manager;
+﻿namespace DSharpPlus.SettingsManager;
 
 public class Manager
 {
