@@ -1,4 +1,5 @@
 ﻿using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace DSharpPlus.SettingsManager
 {
@@ -49,20 +50,6 @@ namespace DSharpPlus.SettingsManager
         Manager.Manager ChannelSettings { get; set; } = new Manager.Manager();
 
         /// <summary>
-        /// Private function for logging
-        /// </summary>
-        /// <param name="prefix">Prefix of log</param>
-        /// <param name="log">Log message</param>
-        /// <param name="level">Debug Level</param>
-        private void log(string prefix, string log, int level)
-        {
-            if (level <= DebugLevel)
-            {
-                Console.WriteLine($"{DateTime.Now}\t[{prefix.ToUpper()}] {log}");
-            }
-        }
-
-        /// <summary>
         /// Returns Serialization String of this Manager
         /// </summary>
         /// <returns>JSON String</returns>
@@ -83,7 +70,10 @@ namespace DSharpPlus.SettingsManager
 
             File.WriteAllText(folder + "guildsettings.json", System.Text.Json.JsonSerializer.Serialize(GuildSettings));
             File.WriteAllText(folder + "channelsettings.json", System.Text.Json.JsonSerializer.Serialize(ChannelSettings));
-            log("SM", "Saved Manager", 2);
+
+            if (client == null) return;
+            client.Logger.Log(LogLevel.Information, new EventId(210, "Saving"), "Setting Files have been written to provided folder path: " + folder);
+            
         }
 
         /// <summary>
@@ -99,7 +89,8 @@ namespace DSharpPlus.SettingsManager
             }
             catch (FileNotFoundException fnfex)
             {
-                log("SM", "Couldn't load from " + fnfex.FileName + " as this file does not exist", 1);
+                if (client == null) return;
+                client.Logger.Log(LogLevel.Error, new EventId(220, "Loading"), "Couldn't load from " + fnfex.FileName + " as this file does not exist");
             }
         }
 
@@ -192,7 +183,7 @@ namespace DSharpPlus.SettingsManager
         /// <returns>Setting value as string</returns>
         public string GetSettingValue(ulong id, string name)
         {
-            log("SM", "Trying to get Setting " + name + " for " + id, 2);
+            client.Logger.Log(LogLevel.Debug, new EventId(201, "Access"), $"Trying to get Setting {name} for {id}");
             string result = GuildSettings.getSetting(id, name);
             if (result != null)
             {
@@ -211,7 +202,7 @@ namespace DSharpPlus.SettingsManager
         /// <returns>Success</returns>
         public bool SetSettingValue(ulong id, string name, string value)
         {
-            log("SM", "Trying to set Setting " + name + " for " + id + " to " + value, 2);
+            client.Logger.Log(LogLevel.Debug, new EventId(201, "Access"), $"Trying to set Setting {name} for {id} to {value}");
             if (GuildSettings.setSetting(id, name, value))
             {
                 return true;
@@ -269,17 +260,20 @@ namespace DSharpPlus.SettingsManager
 
             foreach (KeyValuePair<ulong, DiscordGuild> guild in guilds)
             {
-                log("SM", $"Registering Guild \"{guild.Value.Name}\"(ID: {guild.Key}) into Registry", 3);
+                client.Logger.Log(LogLevel.Trace, new EventId(202, "Startup"), $"Registering Guild \"{guild.Value.Name}\"(ID: {guild.Key}) into Registry");
+
+
                 GuildSettings.Register(guild.Key);
 
                 foreach (KeyValuePair<ulong, DiscordChannel> channel in guild.Value.Channels)
                 {
-                    log("SM", $"Registering Channel \"{channel.Value.Name}\"(ID: {channel.Key}) into Registry", 3);
+                    client.Logger.Log(LogLevel.Trace, new EventId(202, "Startup"), $"Registering Channel \"{channel.Value.Name}\"(ID: {channel.Key}) into Registry");
                     ChannelSettings.Register(channel.Key);
                 }
 
             }
-            log("SM", "Finished registering all Guilds and Channels into Settings Registry", 1);
+
+            client.Logger.Log(LogLevel.Information, new EventId(202, "Startup"), "Finished registering all Guilds and Channels into Settings Registry");
 
         }
 
@@ -332,7 +326,7 @@ namespace DSharpPlus.SettingsManager
             string name = content.Split(" ")[0].Trim();
             string value = content.Replace(name, "").Trim();
 
-            log("SM", $"User trying to set setting {name} to {value}; Is Admin? {isAdmin}", 2);
+            client.Logger.Log(LogLevel.Debug, new EventId(2), $"User trying to set setting {name} to {value}; Is Admin? {isAdmin}");
 
             bool GuildSettingsSuccessfull = GuildSettings.setSettingAsUser(guildId, name, value, isAdmin);
             bool ChannelSettingsSuccessful = ChannelSettings.setSettingAsUser(channelId, name, value, isAdmin);

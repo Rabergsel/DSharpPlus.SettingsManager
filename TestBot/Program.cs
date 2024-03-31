@@ -16,16 +16,19 @@ namespace MyFirstBot
 
             SettingsManager? settings = new SettingsManager
             {
-                DebugLevel = 3
+                DebugLevel = 1
             };
-            settings.AddDefaultGuildSetting(new SettingEntity("ReactToPing", false.ToString(), "If set to yes, the bot will react to a \"ping\" message", false));
 
+            //Add Settings to Guilds
+            settings.AddDefaultGuildSetting(
+                new SettingEntity("ReactToPing", false.ToString(), "If set to yes, the bot will react to a \"ping\" message", false)
+                );
 
             discord.AddExtension(settings);
 
             discord.MessageCreated += async (s, e) =>
             {
-                if (settings.GetSettingValueAsBoolean(e.Guild.Id, "ReactToPing", false))
+                if (!settings.GetSettingValueAsBoolean(e.Guild.Id, "ReactToPing", false))
                 {
                     return;
                 }
