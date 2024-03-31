@@ -8,14 +8,7 @@ public class Manager
 
     public void Register(ulong id)
     {
-        if (Settings.ContainsKey(id))
-        {
-            return;
-        }
-        else
-        {
-            Settings.Add(id, defaults.ToArray().ToList());
-        }
+        _settings.TryAdd(id, defaults.ToArray().ToList());
     }
 
     public void AddDefaultSetting(SettingEntity setting)
