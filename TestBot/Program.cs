@@ -1,43 +1,42 @@
 ﻿using DSharpPlus;
 using DSharpPlus.SettingsManager;
 
-namespace MyFirstBot
+namespace MyFirstBot;
+
+class Program
 {
-    class Program
+    static async Task Main(string[] args)
     {
-        static async Task Main(string[] args)
+        DiscordClient? discord = new DiscordClient(new DiscordConfiguration()
         {
-            DiscordClient? discord = new DiscordClient(new DiscordConfiguration()
+            Token = File.ReadAllText("token.txt"),
+            TokenType = TokenType.Bot,
+            Intents = DiscordIntents.All
+        });
+
+        SettingsManager? settings = new SettingsManager
+        {
+            DebugLevel = 3
+        };
+        settings.AddDefaultGuildSetting(new SettingEntity("ReactToPing", false.ToString(), "If set to yes, the bot will react to a \"ping\" message", false));
+
+
+        discord.AddExtension(settings);
+
+        discord.MessageCreated += async (s, e) =>
+        {
+            if (settings.GetSettingValueAsBoolean(e.Guild.Id, "ReactToPing", false))
             {
-                Token = File.ReadAllText("token.txt"),
-                TokenType = TokenType.Bot,
-                Intents = DiscordIntents.All
-            });
+                return;
+            }
 
-            SettingsManager? settings = new SettingsManager
+            if (e.Message.Content.ToLower().StartsWith("ping"))
             {
-                DebugLevel = 3
-            };
-            settings.AddDefaultGuildSetting(new SettingEntity("ReactToPing", false.ToString(), "If set to yes, the bot will react to a \"ping\" message", false));
+                await e.Message.RespondAsync("pong!");
+            }
+        };
 
-
-            discord.AddExtension(settings);
-
-            discord.MessageCreated += async (s, e) =>
-            {
-                if (settings.GetSettingValueAsBoolean(e.Guild.Id, "ReactToPing", false))
-                {
-                    return;
-                }
-
-                if (e.Message.Content.ToLower().StartsWith("ping"))
-                {
-                    await e.Message.RespondAsync("pong!");
-                }
-            };
-
-            await discord.ConnectAsync();
-            await Task.Delay(-1);
-        }
+        await discord.ConnectAsync();
+        await Task.Delay(-1);
     }
 }
