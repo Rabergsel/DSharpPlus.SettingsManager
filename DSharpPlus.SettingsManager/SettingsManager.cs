@@ -120,24 +120,24 @@ public class SettingsManager : BaseExtension
     public string GetSettingValue(ulong id, string name)
     {
         log("SM", "Trying to get Setting " + name + " for " + id, 2);
-        string result = GuildSettings.getSetting(id, name);
+        string result = GuildSettings.GetSetting(id, name);
         if (result != null)
         {
             return result;
         }
 
-        return ChannelSettings.getSetting(id, name);
+        return ChannelSettings.GetSetting(id, name);
     }
 
     public bool SetSettingValue(ulong id, string name, string value)
     {
         log("SM", "Trying to set Setting " + name + " for " + id + " to " + value, 2);
-        if (GuildSettings.setSetting(id, name, value))
+        if (GuildSettings.SetSetting(id, name, value))
         {
             return true;
         }
 
-        if (ChannelSettings.setSetting(id, name, value))
+        if (ChannelSettings.SetSetting(id, name, value))
         {
             return true;
         }
@@ -235,8 +235,8 @@ public class SettingsManager : BaseExtension
 
         log("SM", $"User trying to set setting {name} to {value}; Is Admin? {isAdmin}", 2);
 
-        bool GuildSettingsSuccessfull = GuildSettings.setSettingAsUser(guildId, name, value, isAdmin);
-        bool ChannelSettingsSuccessful = ChannelSettings.setSettingAsUser(channelId, name, value, isAdmin);
+        bool GuildSettingsSuccessfull = GuildSettings.SetSettingAsUser(guildId, name, value, isAdmin);
+        bool ChannelSettingsSuccessful = ChannelSettings.SetSettingAsUser(channelId, name, value, isAdmin);
 
         if (GuildSettingsSuccessfull | ChannelSettingsSuccessful)
         {

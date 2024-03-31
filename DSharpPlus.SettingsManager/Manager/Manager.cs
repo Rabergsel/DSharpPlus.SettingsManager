@@ -32,7 +32,7 @@ public class Manager
 
     }
 
-    public bool setSettingAsUser(ulong id, string name, string value, bool isAdmin)
+    public bool SetSettingAsUser(ulong id, string name, string value, bool isAdmin)
     {
         if (Settings.ContainsKey(id))
         {
@@ -60,7 +60,7 @@ public class Manager
         return false;
     }
 
-    public bool setSetting(ulong id, string name, string value)
+    public bool SetSetting(ulong id, string name, string value)
     {
         if (Settings.ContainsKey(id))
         {
@@ -84,7 +84,7 @@ public class Manager
         return false;
     }
 
-    public string getSetting(ulong id, string name, bool registerNew = false)
+    public string GetSetting(ulong id, string name, bool registerNew = false)
     {
         if (Settings.ContainsKey(id))
         {
@@ -106,7 +106,7 @@ public class Manager
             if (registerNew)
             {
                 _settings.Add(id, defaults.ToArray().ToList()); //Converting it so it is cloned
-                return getSetting(id, name);
+                return GetSetting(id, name);
             }
         }
 
