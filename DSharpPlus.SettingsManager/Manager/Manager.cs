@@ -3,30 +3,31 @@
 public class Manager
 {
     internal List<SettingEntity> defaults = new List<SettingEntity>();
+    
+    private readonly Dictionary<ulong, IReadOnlyList<SettingEntity>> _settings = new();
 
-    public Dictionary<ulong, List<SettingEntity>> Settings { get; set; } = new Dictionary<ulong, List<SettingEntity>>();
+    public IReadOnlyDictionary<ulong, IReadOnlyList<SettingEntity>> Settings => _settings;
 
     public void Register(ulong id)
     {
         _settings.TryAdd(id, defaults.ToArray().ToList());
     }
 
-    public void AddDefaultSetting(SettingEntity setting)
+    public void AddDefaultSetting(SettingEntity newSetting)
     {
-
         foreach (SettingEntity? def in defaults)
         {
-            if (def.Name == setting.Name)
+            if (def.Name == newSetting.Name)
             {
                 return; //Name already in use
             }
         }
 
-        defaults.Add(setting);
+        defaults.Add(newSetting);
 
-        foreach (KeyValuePair<ulong, List<SettingEntity>> Setting in Settings)
+        foreach (KeyValuePair<ulong, IReadOnlyList<SettingEntity>> setting in _settings)
         {
-            Setting.Value.Add(setting);
+            ((List<SettingEntity>)setting.Value).Add(newSetting);
         }
 
     }
@@ -104,7 +105,7 @@ public class Manager
         {
             if (registerNew)
             {
-                Settings.Add(id, defaults.ToArray().ToList()); //Converting it so it is cloned
+                _settings.Add(id, defaults.ToArray().ToList()); //Converting it so it is cloned
                 return getSetting(id, name);
             }
         }
