@@ -10,7 +10,7 @@
     <RepositoryUrl>https://github.com/Rabergsel/DSharpPlus.SettingsManager</RepositoryUrl>
     <PackageId>Rabergsel.DSharpPlus.SettingsManager</PackageId>
     <Product>Rabergsel.DSharpPlus.SettingsManager</Product>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -11,8 +11,11 @@ namespace MyFirstBot
             {
                 Token = File.ReadAllText("token.txt"),
                 TokenType = TokenType.Bot,
-                Intents = DiscordIntents.All
+                Intents = DiscordIntents.All,
+                MinimumLogLevel = Microsoft.Extensions.Logging.LogLevel.Debug
             });
+
+          
 
             SettingsManager? settings = new SettingsManager
             {
