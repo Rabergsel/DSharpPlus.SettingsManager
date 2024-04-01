@@ -1,4 +1,5 @@
 ﻿using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace DSharpPlus.SettingsManager;
 
@@ -6,12 +7,6 @@ public class SettingsManager : BaseExtension
 {
 
     DiscordClient client;
-
-    //0 is off
-    //1 is only errors and most important events
-    //2 is Actions
-    //3 is Looping Debugging
-    public int DebugLevel = 0;
 
     public bool CommandListener = true;
     public string prefix = "?";
@@ -22,14 +17,6 @@ public class SettingsManager : BaseExtension
 
     Manager GuildSettings { get; set; } = new Manager();
     Manager ChannelSettings { get; set; } = new Manager();
-
-    private void log(string prefix, string log, int level)
-    {
-        if (level <= DebugLevel)
-        {
-            Console.WriteLine($"{DateTime.Now}\t[{prefix.ToUpper()}] {log}");
-        }
-    }
 
 
     public string Serialize()
@@ -47,7 +34,10 @@ public class SettingsManager : BaseExtension
 
         File.WriteAllText(folder + "guildsettings.json", System.Text.Json.JsonSerializer.Serialize(GuildSettings));
         File.WriteAllText(folder + "channelsettings.json", System.Text.Json.JsonSerializer.Serialize(ChannelSettings));
-        log("SM", "Saved Manager", 2);
+
+        if (client == null) return;
+        client.Logger.Log(LogLevel.Information, new EventId(210, "Saving"), $"Finished saving of Managers into {folder}");
+
     }
 
     public void Load(string folderPath = "")
@@ -59,7 +49,9 @@ public class SettingsManager : BaseExtension
         }
         catch (FileNotFoundException fnfex)
         {
-            log("SM", "Couldn't load from " + fnfex.FileName + " as this file does not exist", 1);
+            if(client == null) return;  
+            client.Logger.Log(LogLevel.Error, new EventId(211, "Saving"), $"Couldn't load from {fnfex.FileName} as this file does not exist");
+            
         }
     }
 
@@ -119,7 +111,7 @@ public class SettingsManager : BaseExtension
 
     public string GetSettingValue(ulong id, string name)
     {
-        log("SM", "Trying to get Setting " + name + " for " + id, 2);
+        client.Logger.Log(LogLevel.Debug, new EventId(203, "Access"), $"Accessing setting of entity ID {id} with name {name}");
         string result = GuildSettings.GetSetting(id, name);
         if (result != null)
         {
@@ -131,7 +123,7 @@ public class SettingsManager : BaseExtension
 
     public bool SetSettingValue(ulong id, string name, string value)
     {
-        log("SM", "Trying to set Setting " + name + " for " + id + " to " + value, 2);
+        client.Logger.Log(LogLevel.Debug, new EventId(204, "Access"), $"Changing setting of entity ID {id} with name {name} to {value}");
         if (GuildSettings.SetSetting(id, name, value))
         {
             return true;
@@ -178,17 +170,17 @@ public class SettingsManager : BaseExtension
 
         foreach (KeyValuePair<ulong, DiscordGuild> guild in guilds)
         {
-            log("SM", $"Registering Guild \"{guild.Value.Name}\"(ID: {guild.Key}) into Registry", 3);
+            client.Logger.Log(LogLevel.Debug, new EventId(202, "Register"), $"Registering Guild {guild.Value.Name} with ID {guild.Key}");
             GuildSettings.Register(guild.Key);
 
             foreach (KeyValuePair<ulong, DiscordChannel> channel in guild.Value.Channels)
             {
-                log("SM", $"Registering Channel \"{channel.Value.Name}\"(ID: {channel.Key}) into Registry", 3);
+                client.Logger.Log(LogLevel.Debug, new EventId(203, "Register"), $"\tRegistering Channel {channel.Value.Name} with ID {channel.Key}");
                 ChannelSettings.Register(channel.Key);
             }
 
         }
-        log("SM", "Finished registering all Guilds and Channels into Settings Registry", 1);
+        client.Logger.Log(LogLevel.Information, new EventId(201, "Register"), $"Finished registering channels and guilds");
 
     }
 
@@ -233,7 +225,9 @@ public class SettingsManager : BaseExtension
         string name = content.Split(" ")[0].Trim();
         string value = content.Replace(name, "").Trim();
 
-        log("SM", $"User trying to set setting {name} to {value}; Is Admin? {isAdmin}", 2);
+
+        client.Logger.Log(LogLevel.Debug, new EventId(204, "Access"), $"User tried changing Setting {name} to {value}; Is Admin? {isAdmin}");
+        
 
         bool GuildSettingsSuccessfull = GuildSettings.SetSettingAsUser(guildId, name, value, isAdmin);
         bool ChannelSettingsSuccessful = ChannelSettings.SetSettingAsUser(channelId, name, value, isAdmin);
