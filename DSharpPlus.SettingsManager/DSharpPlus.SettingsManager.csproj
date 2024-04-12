@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -10,7 +10,8 @@
     <RepositoryUrl>https://github.com/Rabergsel/DSharpPlus.SettingsManager</RepositoryUrl>
     <PackageId>Rabergsel.DSharpPlus.SettingsManager</PackageId>
     <Product>Rabergsel.DSharpPlus.SettingsManager</Product>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
+    <PackageProjectUrl>https://github.com/Rabergsel/DSharpPlus.SettingsManager</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
