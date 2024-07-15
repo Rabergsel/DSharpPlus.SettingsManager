@@ -160,7 +160,7 @@ public class SettingsManager : BaseExtension
                     return;
                 }
 
-                CommandListenerFunction(e.Guild.Id, e.Channel.Id, PermissionMethods.HasPermission(e.Guild.GetMemberAsync(e.Author.Id).Result.Permissions, Permissions.Administrator), e.Message.Content, e.Channel);
+                CommandListenerFunction(e.Guild.Id, e.Channel.Id, PermissionMethods.HasPermission(e.Guild.GetMemberAsync(e.Author.Id).Result.Permissions, DiscordPermissions.Administrator), e.Message.Content, e.Channel);
             };
         }
     }

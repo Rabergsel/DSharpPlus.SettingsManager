@@ -1,5 +1,6 @@
 ﻿namespace DSharpPlus.SettingsManager;
 
+
 public class Manager
 {
     internal List<SettingEntity> defaults = new List<SettingEntity>();
