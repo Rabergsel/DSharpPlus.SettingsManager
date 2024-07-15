@@ -46,7 +46,7 @@ public class SettingsManager : BaseExtension
     public void SaveToJSON(string alternativeFolder = "")
     {
         string f = folder;
-        if (alternativeFolder == "") f = alternativeFolder;
+        if (alternativeFolder != "") f = alternativeFolder;
 
         if (!Directory.Exists(f))
         {
@@ -104,12 +104,12 @@ public class SettingsManager : BaseExtension
     /// This will be default for all new channel settings
     /// </summary>
     /// <param name="setting">The new default SettingEntity</param>
-    public void AddDefaultChannelSetting(SettingEntity setting)
+    public void AddDefaultChannelSetting(SettingEntity<object> setting)
     {
         ChannelSettings.AddDefaultSetting(setting);
         if (SaveAfterEveryChange)
         {
-            SaveToJSON();
+            Save();
         }
     }
 
@@ -118,12 +118,12 @@ public class SettingsManager : BaseExtension
     /// This will be default for all new guild settings
     /// </summary>
     /// <param name="setting">The new default SettingEntity</param>
-    public void AddDefaultGuildSetting(SettingEntity setting)
+    public void AddDefaultGuildSetting(SettingEntity<object> setting)
     {
         GuildSettings.AddDefaultSetting(setting);
         if (SaveAfterEveryChange)
         {
-            SaveToJSON();
+            Save();
         }
     }
 
@@ -163,29 +163,29 @@ public class SettingsManager : BaseExtension
         }
     }
 
-    public string GetSettingValue(ulong id, string name)
+    public dynamic GetSettingValue(ulong id, string name)
     {
         client.Logger.Log(LogLevel.Debug, new EventId(203, "Access"), $"Accessing setting of entity ID {id} with name {name}");
-        string result = GuildSettings.GetSetting(id, name);
+        string result = GuildSettings.GetSettingValue(id, name);
         if (result != null)
         {
             return result;
         }
 
-        return ChannelSettings.GetSetting(id, name);
+        return ChannelSettings.GetSettingValue(id, name);
     }
 
-    public bool SetSettingValue(ulong id, string name, string value)
+    public bool SetSettingValue(ulong id, string name, object value)
     {
         client.Logger.Log(LogLevel.Debug, new EventId(204, "Access"), $"Changing setting of entity ID {id} with name {name} to {value}");
-        if (GuildSettings.SetSetting(id, name, value))
+        if(ChannelSettings.HasID(id))
         {
-            return true;
+            ChannelSettings.SetSettingValue(id, name, value);
         }
 
-        if (ChannelSettings.SetSetting(id, name, value))
+        if (GuildSettings.HasID(id))
         {
-            return true;
+            GuildSettings.SetSettingValue(id, name, value);
         }
 
         return false;
@@ -196,27 +196,41 @@ public class SettingsManager : BaseExtension
 
     }
 
-    protected override void Setup(DiscordClient client)
+    public bool Registered = false;
+    public void Register(ref DiscordClientBuilder builder)
     {
-        this.client = client;
+        builder.ConfigureEventHandlers
+         (
+             b => b.HandleGuildDownloadCompleted(async (s, e) =>
+             {
+                 RegisterAllGuilds(e.Guilds);
+             })
+         );
 
-        client.GuildDownloadCompleted += async (s, e) =>
-        {
-            RegisterAllGuilds(e.Guilds);
-        };
 
         if (CommandListener)
         {
-            client.MessageCreated += async (s, e) =>
-            {
-                if (e.Guild == null)
-                {
-                    return;
-                }
-
-                CommandListenerFunction(e.Guild.Id, e.Channel.Id, PermissionMethods.HasPermission(e.Guild.GetMemberAsync(e.Author.Id).Result.Permissions, DiscordPermissions.Administrator), e.Message.Content, e.Channel);
-            };
+            builder.ConfigureEventHandlers
+          (
+              b => b.HandleMessageCreated(async (s, e) =>
+              {
+                  if (e.Guild is null) return;
+                  CommandListenerFunction(e.Guild.Id, e.Channel.Id, e.Channel.PermissionsFor(await e.Guild.GetMemberAsync(e.Author.Id)), e.Message.Content, e.Channel);
+              })
+          );
         }
+        Registered = true;
+    }
+
+    protected override void Setup(DiscordClient client)
+    {
+
+        if(!Registered)
+        {
+            throw new Exception("Call SettingsManager.Register() before building the discord client!");
+        }
+
+        this.client = client;
     }
 
     private void RegisterAllGuilds(IReadOnlyDictionary<ulong, DiscordGuild> guilds)
@@ -238,7 +252,7 @@ public class SettingsManager : BaseExtension
 
     }
 
-    private void CommandListenerFunction(ulong guildId, ulong channelId, bool isAdmin, string content, DiscordChannel channel)
+    private void CommandListenerFunction(ulong guildId, ulong channelId, DiscordPermissions Permissions, string content, DiscordChannel channel)
     {
 
         if (!content.StartsWith(prefix))
@@ -249,19 +263,27 @@ public class SettingsManager : BaseExtension
         string answer = "";
         if (content.StartsWith(prefix + " help"))
         {
-            foreach (SettingEntity? d in GuildSettings.defaults)
+            foreach (var d in GuildSettings.defaults)
             {
-                if (!isAdmin & d.needsAdmin)
+                if (!PermissionMethods.HasPermission(Permissions, d.Permissions))
                 {
                     continue;
                 }
 
                 answer += "**" + d.Name + "**\t" + d.Description + "\n";
+                if(d.AllowedValues.Count() != 0)
+                {
+                    answer += "Allowed: ";
+                    foreach(var  v in d.AllowedValues)
+                    {
+                        answer += v.ToString() + "|"; 
+                    }
+                }
 
             }
-            foreach (SettingEntity? d in ChannelSettings.defaults)
+            foreach (var d in ChannelSettings.defaults)
             {
-                if (!isAdmin & d.needsAdmin)
+                if (!PermissionMethods.HasPermission(Permissions, d.Permissions))
                 {
                     continue;
                 }
@@ -280,13 +302,21 @@ public class SettingsManager : BaseExtension
         string value = content.Replace(name, "").Trim();
 
 
-        client.Logger.Log(LogLevel.Debug, new EventId(204, "Access"), $"User tried changing Setting {name} to {value}; Is Admin? {isAdmin}");
-        
+        client.Logger.Log(LogLevel.Debug, new EventId(204, "Access"), $"User tried changing Setting {name} to {value}");
 
-        bool GuildSettingsSuccessfull = GuildSettings.SetSettingAsUser(guildId, name, value, isAdmin);
-        bool ChannelSettingsSuccessful = ChannelSettings.SetSettingAsUser(channelId, name, value, isAdmin);
+        bool GuildSettingsSuccessfull = false;
+        bool ChannelSettingsSuccessfull = false;
 
-        if (GuildSettingsSuccessfull | ChannelSettingsSuccessful)
+        if(GuildSettings.HasID(guildId))
+        {
+            GuildSettingsSuccessfull = GuildSettings.SetSettingValue(guildId, name, value, Permissions);
+        }
+        if (ChannelSettings.HasID(guildId))
+        {
+            ChannelSettingsSuccessfull = ChannelSettings.SetSettingValue(guildId, name, value, Permissions);
+        }
+
+        if (GuildSettingsSuccessfull | ChannelSettingsSuccessfull)
         {
             answer = $"Set Setting \"{name}\" to {value}";
             channel.SendMessageAsync(answer);

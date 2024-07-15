@@ -1,118 +1,84 @@
-﻿namespace DSharpPlus.SettingsManager;
+﻿using DSharpPlus.Entities;
+
+namespace DSharpPlus.SettingsManager;
 
 
 public class Manager
 {
-    internal List<SettingEntity> defaults = new List<SettingEntity>();
+    internal List<SettingEntity<object>> defaults { get; set; } = new List<SettingEntity<object>>();
     
-    private readonly Dictionary<ulong, IReadOnlyList<SettingEntity>> _settings = new();
+    private Dictionary<ulong, IReadOnlyList<SettingEntity<object>>> _settings { get; set; } = new();
 
-    public IReadOnlyDictionary<ulong, IReadOnlyList<SettingEntity>> Settings => _settings;
+    public IReadOnlyDictionary<ulong, IReadOnlyList<SettingEntity<object>>> Settings => _settings;
 
     public void Register(ulong id)
     {
         _settings.TryAdd(id, defaults.ToArray().ToList());
     }
 
-    public void AddDefaultSetting(SettingEntity newSetting)
+    public void AddDefaultSetting(SettingEntity<object> entity)
     {
-        foreach (SettingEntity? def in defaults)
-        {
-            if (def.Name == newSetting.Name)
-            {
-                return; //Name already in use
-            }
-        }
-
-        defaults.Add(newSetting);
-
-        foreach (KeyValuePair<ulong, IReadOnlyList<SettingEntity>> setting in _settings)
-        {
-            ((List<SettingEntity>)setting.Value).Add(newSetting);
-        }
-
+        defaults.Add(entity);
     }
 
-    public bool SetSettingAsUser(ulong id, string name, string value, bool isAdmin)
+    public bool HasID(ulong id)
     {
-        if (Settings.ContainsKey(id))
+        return _settings.ContainsKey(id);
+    }
+    public bool HasName(string Name)
+    {
+        foreach(var d in defaults)
         {
-            for (int i = 0; i < Settings[id].Count; i++)
-            {
-                if (Settings[id][i].Name == name)
-                {
-                    if (Settings[id][i].needsAdmin & !isAdmin) { return false; } //Missing Privileges
-
-                    Settings[id][i].Value = value;
-                    return true;
-                }
-
-                if (Settings[id][i].CommandAlts.Contains(name))
-                {
-                    if (Settings[id][i].needsAdmin & !isAdmin) { return false; } //Missing Privileges
-
-                    Settings[id][i].Value = value;
-                    return true;
-                }
-
-            }
+            if(d.Name == Name) return true;
         }
-
         return false;
     }
 
-    public bool SetSetting(ulong id, string name, string value)
+    public dynamic GetSettingValue(ulong ID, string SettingName)
     {
-        if (Settings.ContainsKey(id))
+        //Basic Checks to make our lives easier in the later code
+        if(!HasID(ID)) { throw new Exception("Access to a non-existent ID was executed: " + ID); }
+        if(!HasName(SettingName)) { throw new Exception("Access to a non-existent Setting was executed: " + SettingName); }
+
+        return _settings[ID].First(s => (s.Name == SettingName || s.CommandAlts.Contains(SettingName))).Value;
+    }
+
+    public bool SetSettingValue(ulong ID, string SettingName, object Value)
+    {
+        //Basic Checks to make our lives easier in the later code
+        if (!HasID(ID)) { throw new Exception("Access to a non-existent ID was executed: " + ID); }
+        if (!HasName(SettingName)) { throw new Exception("Access to a non-existent Setting was executed: " + SettingName); }
+
+        for(int i = 0; i < _settings[ID].Count; i++)
         {
-            for (int i = 0; i < Settings.Count; i++)
+            if (_settings[ID][i].Name==SettingName || _settings[ID][i].CommandAlts.Contains(SettingName))
             {
-                if (Settings[id][i].Name == name)
-                {
-                    Settings[id][i].Value = value;
-                    return true;
-                }
-
-                if (Settings[id][i].CommandAlts.Contains(name))
-                {
-                    Settings[id][i].Value = value;
-                    return true;
-                }
-
+                _settings[ID][i].Value = Value;
+                return true;
             }
         }
-
         return false;
     }
 
-    public string GetSetting(ulong id, string name, bool registerNew = false)
+    public bool SetSettingValue(ulong ID, string SettingName, object Value, DiscordPermissions Permissions)
     {
-        if (Settings.ContainsKey(id))
-        {
-            foreach (SettingEntity? Setting in Settings[id])
-            {
-                if (Setting.Name == name)
-                {
-                    return Setting.Value;
-                }
+        //Basic Checks to make our lives easier in the later code
+        if (!HasID(ID)) { throw new Exception("Access to a non-existent ID was executed: " + ID); }
+        if (!HasName(SettingName)) { throw new Exception("Access to a non-existent Setting was executed: " + SettingName); }
 
-                if (Setting.CommandAlts.Contains(name))
-                {
-                    return Setting.Value;
-                }
+        for (int i = 0; i < _settings[ID].Count; i++)
+        {
+            if (_settings[ID][i].Name == SettingName || _settings[ID][i].CommandAlts.Contains(SettingName))
+            {
+                if (!PermissionMethods.HasPermission(Permissions, _settings[ID][i].Permissions)) return false;
+
+                _settings[ID][i].Value = Value;
+                return true;
             }
         }
-        else
-        {
-            if (registerNew)
-            {
-                _settings.Add(id, defaults.ToArray().ToList()); //Converting it so it is cloned
-                return GetSetting(id, name);
-            }
-        }
-
-        return null;
+        return false;
     }
+
 
 
 }
