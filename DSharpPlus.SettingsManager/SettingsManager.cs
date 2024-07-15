@@ -8,39 +8,64 @@ public class SettingsManager : BaseExtension
 
     DiscordClient client;
 
+    /// <summary>
+    /// When set to true, the extension will set up a text command listener
+    /// </summary>
     public bool CommandListener = true;
+
+    /// <summary>
+    /// The command listener will listen to all the messages with this prefix
+    /// Only relevant when CommandListener is set to true
+    /// </summary>
     public string prefix = "?";
 
+    /// <summary>
+    /// When set to true, the Manager will save after every change
+    /// </summary>
     public bool SaveAfterEveryChange = true;
+
+    /// <summary>
+    /// The base folder for saving
+    /// </summary>
     public string folder = "./settings/";
 
-
+    /// <summary>
+    /// The manager for Guild Settings
+    /// </summary>
     Manager GuildSettings { get; set; } = new Manager();
+
+    /// <summary>
+    /// The manager for Channel Settings
+    /// </summary>
     Manager ChannelSettings { get; set; } = new Manager();
 
-
-    public string Serialize()
+    /// <summary>
+    /// JSON Serializer for saving
+    /// </summary>
+    /// <param name="alternativeFolder">If left empty, the defined base folder will be used</param>
+    public void SaveToJSON(string alternativeFolder = "")
     {
-        return System.Text.Json.JsonSerializer.Serialize(this);
-    }
+        string f = folder;
+        if (alternativeFolder == "") f = alternativeFolder;
 
-
-    public void Save()
-    {
-        if (!Directory.Exists(folder))
+        if (!Directory.Exists(f))
         {
-            Directory.CreateDirectory(folder);
+            Directory.CreateDirectory(f);
         }
 
-        File.WriteAllText(folder + "guildsettings.json", System.Text.Json.JsonSerializer.Serialize(GuildSettings));
-        File.WriteAllText(folder + "channelsettings.json", System.Text.Json.JsonSerializer.Serialize(ChannelSettings));
+        File.WriteAllText(f + "guildsettings.json", System.Text.Json.JsonSerializer.Serialize(GuildSettings));
+        File.WriteAllText(f + "channelsettings.json", System.Text.Json.JsonSerializer.Serialize(ChannelSettings));
 
         if (client == null) return;
-        client.Logger.Log(LogLevel.Information, new EventId(210, "Saving"), $"Finished saving of Managers into {folder}");
+        client.Logger.Log(LogLevel.Information, new EventId(210, "Saving"), $"Finished saving of Managers into {f}");
 
     }
 
-    public void Load(string folderPath = "")
+    /// <summary>
+    /// Loads from JSON
+    /// </summary>
+    /// <param name="folderPath">Load from this folder</param>
+    public void LoadFromJSON(string folderPath = "")
     {
         try
         {
@@ -55,21 +80,50 @@ public class SettingsManager : BaseExtension
         }
     }
 
+    /// <summary>
+    /// A virtual public method for saving.
+    /// If not overridden, it will use JSON Serializer
+    /// </summary>
+    public virtual void Save()
+    {
+        SaveToJSON();
+    }
+
+    /// <summary>
+    /// A virtual public method for loading.
+    /// If not overriden, it will load from the base folder with JSON
+    /// </summary>
+    public virtual void Load()
+    {
+        LoadFromJSON(folder);
+    }
+
+
+    /// <summary>
+    /// Adds a default setting for a channel.
+    /// This will be default for all new channel settings
+    /// </summary>
+    /// <param name="setting">The new default SettingEntity</param>
     public void AddDefaultChannelSetting(SettingEntity setting)
     {
         ChannelSettings.AddDefaultSetting(setting);
         if (SaveAfterEveryChange)
         {
-            Save();
+            SaveToJSON();
         }
     }
 
+    /// <summary>
+    /// Adds a default setting for a guild.
+    /// This will be default for all new guild settings
+    /// </summary>
+    /// <param name="setting">The new default SettingEntity</param>
     public void AddDefaultGuildSetting(SettingEntity setting)
     {
         GuildSettings.AddDefaultSetting(setting);
         if (SaveAfterEveryChange)
         {
-            Save();
+            SaveToJSON();
         }
     }
 
@@ -238,7 +292,7 @@ public class SettingsManager : BaseExtension
             channel.SendMessageAsync(answer);
             if (SaveAfterEveryChange)
             {
-                Save();
+                SaveToJSON();
             }
 
             return;
