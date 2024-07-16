@@ -2,6 +2,10 @@
 
 Rabergsel.DSharpPlus.SettingsManager is an extension for DSharpPlus that provides an easy infrastructure for managing settings for Discord Servers and Channels.
 
+Since v1.2.0:
+
+[![wakatime](https://wakatime.com/badge/github/Rabergsel/DSharpPlus.SettingsManager.svg)](https://wakatime.com/badge/github/Rabergsel/DSharpPlus.SettingsManager)
+
 ## Installation
 
 This package is under heavy development and not yet available on NuGet. However, you can clone the repository and build the project locally.
