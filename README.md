@@ -8,53 +8,55 @@ This package is under heavy development and not yet available on NuGet. However,
 
 ## Usage
 
+With DSharpPlus 5.0 (nightly), the process of building a discord client has changed.
+This has been patched with SettingsManager v1.2.0, so if you are using an older version of DSharpPlus, please use an older version of this package.
+
+This example is a minimum example that makes use of all important features of the library.
+
 ```csharp
-using DSharpPlus;  // Import DSharpPlus library for Discord API
-using DSharpPlus.SettingsManager;  // Import DSharpPlus.SettingsManager library for managing settings
-using System.IO;  // Import System.IO for file reading
+using DSharpPlus;
+using DSharpPlus.SettingsManager;
+using Microsoft.Extensions.Logging;
 
 namespace MyFirstBot
 {
-    class Program
+    internal class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
-            // Initialize Discord client
-            DiscordClient? discord = new DiscordClient(new DiscordConfiguration()
-            {
-                // Read bot token from token.txt file
-                Token = File.ReadAllText("token.txt"),
-                TokenType = TokenType.Bot,  // Set token type as Bot
-                Intents = DiscordIntents.All  // Enable all intents for the bot
-            });
+            //Create Discord Builder
+            DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(File.ReadAllText("token.txt"), DiscordIntents.All);
 
-            // Add default guild setting for reacting to "ping" message
-            settings.AddDefaultGuildSetting(new SettingEntity("ReactToPing", false.ToString(), "If set to yes, the bot will react to a \"ping\" message", false));
+            SettingsManager? settings = new SettingsManager();
+            settings.Register(ref builder);   //!!! ALWAYS CALL BEFORE REGISTERING
 
-            // Add SettingsManager extension to Discord client
+            //The following section registers an event that will respond "pong" to "ping" as often
+            //as set in the "pings" setting.
+            builder.ConfigureEventHandlers
+                (
+                    b => b.HandleMessageCreated(async (s, e) =>
+                    {
+                        if (e.Message.Content.ToLower().StartsWith("ping"))
+                        {
+                            for (int i = 0; i < settings.GetSettingValueAsLong(e.Guild.Id, "pings"); i++)
+                            {
+                                await e.Message.RespondAsync("pong " + i);
+                            }
+                        }
+                    })
+                );
+
+            var discord = builder.Build();
+
+            //Add Extension
             discord.AddExtension(settings);
 
-            // Handle message creation event
-            discord.MessageCreated += async (s, e) =>
+            settings.AddDefaultGuildSetting(new SettingEntity<object>("pings", 1)
             {
-                // Check if guild setting allows reacting to "ping" message
-                if (!settings.GetSettingValueAsBoolean(e.Guild.Id, "ReactToPing", false))
-                {
-                    return;  // Skip if not allowed
-                }
+                AllowedValues = new List<object>() { 0, 1, 3, 5 }    //Only allow the values of 0, 1, 3 and 5
+            });
 
-                // Check if message content starts with "ping"
-                if (e.Message.Content.ToLower().StartsWith("ping"))
-                {
-                    // Respond with "pong!"
-                    await e.Message.RespondAsync("pong!");
-                }
-            };
-
-            // Connect to Discord
             await discord.ConnectAsync();
-
-            // Keep the application running indefinitely
             await Task.Delay(-1);
         }
     }
@@ -66,4 +68,7 @@ namespace MyFirstBot
 
 This package is under heavy development and may undergo frequent changes. It's recommended to keep an eye on updates and consult the documentation for any breaking changes.
 
-User Settings are coming soon.
+## TODO
+- User settings
+- Complete generic User Settings
+- More customization
