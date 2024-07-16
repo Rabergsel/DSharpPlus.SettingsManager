@@ -14,7 +14,7 @@ public class SettingEntity<T>
     }
 
     public string Name { get; set; }
-    public string Description { get; set; } = "";
+    public string Description { get; set; } = "No description provided";
 
     public T Value { get; set; }
 

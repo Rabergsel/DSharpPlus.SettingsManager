@@ -270,7 +270,7 @@ public class SettingsManager : BaseExtension
                     continue;
                 }
 
-                answer += "**" + d.Name + "**\t" + d.Description + "\n";
+                answer += "**" + prefix + d.Name + "**\t*" + d.Description + "*\n";
                 if(d.AllowedValues.Count() != 0)
                 {
                     answer += "Allowed: ";
@@ -288,7 +288,7 @@ public class SettingsManager : BaseExtension
                     continue;
                 }
 
-                answer += "**" + d.Name + "**\t" + d.Description + "\n";
+                answer += "**" + d.Name + "**\t*" + d.Description + "*\n";
 
             }
             channel.SendMessageAsync(answer);

@@ -89,7 +89,10 @@ public class Manager
                 }
 
                 //Check for permissions
-                if (!PermissionMethods.HasPermission(Permissions, _settings[ID][i].Permissions)) return false;
+                if (!PermissionMethods.HasPermission(Permissions, _settings[ID][i].Permissions))
+                {
+                    throw new Exception("You have not all necessary permissions to execute this command");
+                }
 
                 _settings[ID][i].Value = Value;
                 return true;

@@ -24,7 +24,7 @@ namespace MyFirstBot
                     {
                         if (e.Message.Content.ToLower().StartsWith("ping"))
                         {
-                            for(int i = 0; i < settings.GetSettingValueAsLong(e.Guild.Id, "pings"); i++)
+                            for (int i = 0; i < settings.GetSettingValueAsLong(e.Guild.Id, "pings"); i++)
                             {
                                 await e.Message.RespondAsync("pong " + i);
                             }
