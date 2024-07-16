@@ -84,7 +84,7 @@ public class Manager
                 {
                     if (!_settings[ID][i].AllowedValues.Contains(Value))
                     {
-                        return false;
+                        throw new Exception("Invalid value wanted to be set: " + Value.ToString());
                     }
                 }
 

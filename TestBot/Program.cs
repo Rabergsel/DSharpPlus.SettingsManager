@@ -38,7 +38,10 @@ namespace MyFirstBot
             discord.AddExtension(settings);
 
 
-            settings.AddDefaultGuildSetting(new SettingEntity<object>("pings", 1));
+            settings.AddDefaultGuildSetting(new SettingEntity<object>("pings", 1)
+            {
+                AllowedValues = new List<object>() {0, 1, 3, 5 }
+            });
 
             await discord.ConnectAsync();
             await Task.Delay(-1);

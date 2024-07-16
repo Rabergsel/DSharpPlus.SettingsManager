@@ -261,7 +261,7 @@ public class SettingsManager : BaseExtension
         }
 
         string answer = "";
-        if (content.StartsWith(prefix + " help"))
+        if (content.StartsWith(prefix + "help"))
         {
             foreach (var d in GuildSettings.defaults)
             {
@@ -306,14 +306,21 @@ public class SettingsManager : BaseExtension
 
         bool GuildSettingsSuccessfull = false;
         bool ChannelSettingsSuccessfull = false;
-
-        if(GuildSettings.HasID(guildId))
+        try
         {
-            GuildSettingsSuccessfull = GuildSettings.SetSettingValue(guildId, name, value, Permissions);
+            if (GuildSettings.HasID(guildId))
+            {
+                GuildSettingsSuccessfull = GuildSettings.SetSettingValue(guildId, name, value, Permissions);
+            }
+            if (ChannelSettings.HasID(guildId))
+            {
+                ChannelSettingsSuccessfull = ChannelSettings.SetSettingValue(guildId, name, value, Permissions);
+            }
         }
-        if (ChannelSettings.HasID(guildId))
+        catch(Exception ex)
         {
-            ChannelSettingsSuccessfull = ChannelSettings.SetSettingValue(guildId, name, value, Permissions);
+            answer = ex.Message + "\nUse **" + prefix + "help** to see all commands and their info";
+            channel.SendMessageAsync(answer);
         }
 
         if (GuildSettingsSuccessfull | ChannelSettingsSuccessfull)
