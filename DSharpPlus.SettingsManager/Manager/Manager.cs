@@ -53,6 +53,15 @@ public class Manager
         {
             if (_settings[ID][i].Name==SettingName || _settings[ID][i].CommandAlts.Contains(SettingName))
             {
+                //Check if value is allowed
+                if (_settings[ID][i].AllowedValues.Count() > 0)
+                {
+                    if (!_settings[ID][i].AllowedValues.Contains(Value))
+                    {
+                        return false;
+                    }
+                }
+
                 _settings[ID][i].Value = Value;
                 return true;
             }
@@ -70,6 +79,16 @@ public class Manager
         {
             if (_settings[ID][i].Name == SettingName || _settings[ID][i].CommandAlts.Contains(SettingName))
             {
+                //Check if value is allowed
+                if (_settings[ID][i].AllowedValues.Count() > 0)
+                {
+                    if (!_settings[ID][i].AllowedValues.Contains(Value))
+                    {
+                        return false;
+                    }
+                }
+
+                //Check for permissions
                 if (!PermissionMethods.HasPermission(Permissions, _settings[ID][i].Permissions)) return false;
 
                 _settings[ID][i].Value = Value;
