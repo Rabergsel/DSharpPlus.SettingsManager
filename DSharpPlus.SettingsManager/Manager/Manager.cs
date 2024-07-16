@@ -6,7 +6,7 @@ namespace DSharpPlus.SettingsManager;
 public class Manager
 {
     internal List<SettingEntity<object>> defaults { get; set; } = new List<SettingEntity<object>>();
-    
+
     private Dictionary<ulong, IReadOnlyList<SettingEntity<object>>> _settings { get; set; } = new();
 
     public IReadOnlyDictionary<ulong, IReadOnlyList<SettingEntity<object>>> Settings => _settings;
@@ -27,9 +27,12 @@ public class Manager
     }
     public bool HasName(string Name)
     {
-        foreach(var d in defaults)
+        foreach (var d in defaults)
         {
-            if(d.Name == Name) return true;
+            if (d.Name == Name)
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -37,8 +40,8 @@ public class Manager
     public dynamic GetSettingValue(ulong ID, string SettingName)
     {
         //Basic Checks to make our lives easier in the later code
-        if(!HasID(ID)) { throw new Exception("Access to a non-existent ID was executed: " + ID); }
-        if(!HasName(SettingName)) { throw new Exception("Access to a non-existent Setting was executed: " + SettingName); }
+        if (!HasID(ID)) { throw new Exception("Access to a non-existent ID was executed: " + ID); }
+        if (!HasName(SettingName)) { throw new Exception("Access to a non-existent Setting was executed: " + SettingName); }
 
         return _settings[ID].First(s => (s.Name == SettingName || s.CommandAlts.Contains(SettingName))).Value;
     }
@@ -49,9 +52,9 @@ public class Manager
         if (!HasID(ID)) { throw new Exception("Access to a non-existent ID was executed: " + ID); }
         if (!HasName(SettingName)) { throw new Exception("Access to a non-existent Setting was executed: " + SettingName); }
 
-        for(int i = 0; i < _settings[ID].Count; i++)
+        for (int i = 0; i < _settings[ID].Count; i++)
         {
-            if (_settings[ID][i].Name==SettingName || _settings[ID][i].CommandAlts.Contains(SettingName))
+            if (_settings[ID][i].Name == SettingName || _settings[ID][i].CommandAlts.Contains(SettingName))
             {
                 //Check if value is allowed
                 if (_settings[ID][i].AllowedValues.Count() > 0)

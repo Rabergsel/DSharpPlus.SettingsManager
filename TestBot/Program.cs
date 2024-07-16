@@ -1,13 +1,12 @@
 ﻿using DSharpPlus;
 using DSharpPlus.SettingsManager;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace MyFirstBot
 {
-    class Program
+    internal class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             //Create Discord Builder
             DiscordClientBuilder builder = DiscordClientBuilder.CreateDefault(File.ReadAllText("token.txt"), DiscordIntents.All);
@@ -40,7 +39,7 @@ namespace MyFirstBot
 
             settings.AddDefaultGuildSetting(new SettingEntity<object>("pings", 1)
             {
-                AllowedValues = new List<object>() {0, 1, 3, 5 }
+                AllowedValues = new List<object>() { 0, 1, 3, 5 }
             });
 
             await discord.ConnectAsync();

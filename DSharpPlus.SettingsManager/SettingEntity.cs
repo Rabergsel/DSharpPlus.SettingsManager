@@ -1,5 +1,4 @@
 ﻿using DSharpPlus.Entities;
-using Newtonsoft.Json.Linq;
 
 namespace DSharpPlus.SettingsManager;
 

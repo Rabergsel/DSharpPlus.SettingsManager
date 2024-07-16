@@ -5,8 +5,7 @@ namespace DSharpPlus.SettingsManager;
 
 public class SettingsManager : BaseExtension
 {
-
-    DiscordClient client;
+    private DiscordClient client;
 
     /// <summary>
     /// When set to true, the extension will set up a text command listener
@@ -32,12 +31,12 @@ public class SettingsManager : BaseExtension
     /// <summary>
     /// The manager for Guild Settings
     /// </summary>
-    Manager GuildSettings { get; set; } = new Manager();
+    private Manager GuildSettings { get; set; } = new Manager();
 
     /// <summary>
     /// The manager for Channel Settings
     /// </summary>
-    Manager ChannelSettings { get; set; } = new Manager();
+    private Manager ChannelSettings { get; set; } = new Manager();
 
     /// <summary>
     /// JSON Serializer for saving
@@ -46,7 +45,10 @@ public class SettingsManager : BaseExtension
     public void SaveToJSON(string alternativeFolder = "")
     {
         string f = folder;
-        if (alternativeFolder != "") f = alternativeFolder;
+        if (alternativeFolder != "")
+        {
+            f = alternativeFolder;
+        }
 
         if (!Directory.Exists(f))
         {
@@ -56,7 +58,11 @@ public class SettingsManager : BaseExtension
         File.WriteAllText(f + "guildsettings.json", System.Text.Json.JsonSerializer.Serialize(GuildSettings));
         File.WriteAllText(f + "channelsettings.json", System.Text.Json.JsonSerializer.Serialize(ChannelSettings));
 
-        if (client == null) return;
+        if (client == null)
+        {
+            return;
+        }
+
         client.Logger.Log(LogLevel.Information, new EventId(210, "Saving"), $"Finished saving of Managers into {f}");
 
     }
@@ -69,14 +75,18 @@ public class SettingsManager : BaseExtension
     {
         try
         {
-            GuildSettings = System.Text.Json.JsonSerializer.Deserialize<Manager>(File.ReadAllText(folderPath   + "guildsettings.json"));
+            GuildSettings = System.Text.Json.JsonSerializer.Deserialize<Manager>(File.ReadAllText(folderPath + "guildsettings.json"));
             ChannelSettings = System.Text.Json.JsonSerializer.Deserialize<Manager>(File.ReadAllText(folderPath + "channelsettings.json"));
         }
         catch (FileNotFoundException fnfex)
         {
-            if(client == null) return;  
+            if (client == null)
+            {
+                return;
+            }
+
             client.Logger.Log(LogLevel.Error, new EventId(211, "Saving"), $"Couldn't load from {fnfex.FileName} as this file does not exist");
-            
+
         }
     }
 
@@ -178,7 +188,7 @@ public class SettingsManager : BaseExtension
     public bool SetSettingValue(ulong id, string name, object value)
     {
         client.Logger.Log(LogLevel.Debug, new EventId(204, "Access"), $"Changing setting of entity ID {id} with name {name} to {value}");
-        if(ChannelSettings.HasID(id))
+        if (ChannelSettings.HasID(id))
         {
             ChannelSettings.SetSettingValue(id, name, value);
         }
@@ -214,7 +224,11 @@ public class SettingsManager : BaseExtension
           (
               b => b.HandleMessageCreated(async (s, e) =>
               {
-                  if (e.Guild is null) return;
+                  if (e.Guild is null)
+                  {
+                      return;
+                  }
+
                   CommandListenerFunction(e.Guild.Id, e.Channel.Id, e.Channel.PermissionsFor(await e.Guild.GetMemberAsync(e.Author.Id)), e.Message.Content, e.Channel);
               })
           );
@@ -225,7 +239,7 @@ public class SettingsManager : BaseExtension
     protected override void Setup(DiscordClient client)
     {
 
-        if(!Registered)
+        if (!Registered)
         {
             throw new Exception("Call SettingsManager.Register() before building the discord client!");
         }
@@ -271,12 +285,12 @@ public class SettingsManager : BaseExtension
                 }
 
                 answer += "**" + prefix + d.Name + "**\t*" + d.Description + "*\n";
-                if(d.AllowedValues.Count() != 0)
+                if (d.AllowedValues.Count() != 0)
                 {
                     answer += "Allowed: ";
-                    foreach(var  v in d.AllowedValues)
+                    foreach (var v in d.AllowedValues)
                     {
-                        answer += v.ToString() + "|"; 
+                        answer += v.ToString() + "|";
                     }
                 }
 
@@ -317,7 +331,7 @@ public class SettingsManager : BaseExtension
                 ChannelSettingsSuccessfull = ChannelSettings.SetSettingValue(guildId, name, value, Permissions);
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             answer = ex.Message + "\nUse **" + prefix + "help** to see all commands and their info";
             channel.SendMessageAsync(answer);
